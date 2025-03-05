@@ -1,4 +1,4 @@
-# SUMOCOMBO1 - Robot Sumo dengan Kontrol Gamepad
+Robot Sumo dengan Kontrol Gamepad
 ==============================================
 
 Repository ini berisi kumpulan kode untuk robot sumo yang dikendalikan menggunakan gamepad atau stick PS4 melalui library Bluepad32. Robot menggunakan motor driver BTS7960 dan juga ada yang menggunakan RELAY 4 dan 8 Channel untuk kontrol kecepatan dan arah.
