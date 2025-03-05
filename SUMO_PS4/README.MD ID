@@ -1,0 +1,79 @@
+# SUMOCOMBO1 - Robot Sumo dengan Kontrol Gamepad
+==============================================
+
+Repository ini berisi kumpulan kode untuk robot sumo yang dikendalikan menggunakan gamepad atau stick PS4 melalui library Bluepad32. Robot menggunakan motor driver BTS7960 dan juga ada yang menggunakan RELAY 4 dan 8 Channel untuk kontrol kecepatan dan arah.
+
+## Fitur Utama
+-------------
+
+* Kontrol maju-mundur dengan dua mode kecepatan (normal dan turbo)
+* Kontrol belok kiri-kanan
+* Sistem keamanan dengan validasi MAC address gamepad
+* Penggunaan motor driver BTS7960 untuk kontrol motor DC
+* Mode turbo dengan kecepatan maksimal (255) dan normal (200)
+
+## Persyaratan Hardware
+---------------------
+
+* ESP32 Board (disarankan versi DevKit)
+* Motor Driver BTS7960
+* Motor DC x2
+* Power Supply untuk motor
+* Gamepad Bluetooth (dapat menggunakan DualShock 4)
+
+## Persyaratan Software
+---------------------
+
+### Library yang Diperlukan
+1. Bluepad32
+   - Dapat diunduh melalui Library Manager Arduino
+   - Pencarian: "Bluepad32"
+   - Versi: 4.1.0 atau lebih baru
+
+## Cara Setup
+-------------
+
+1. Install Library:
+   - Buka Arduino IDE
+   - Menu Sketch > Include Library > Manage Libraries
+   - Cari "Bluepad32" dan install
+
+2. Koneksi Hardware:
+   - Hubungkan pin-pin sesuai tabel di atas
+   - Pastikan ground sistem terhubung
+   - Gunakan power supply terpisah untuk motor
+
+3. Upload Kode:
+   - Pilih board ESP32 DevKit
+   - Upload kode ke board
+
+## Kekurangan
+------------
+
+1. MAC Address:
+   - Perlu mengubah MAC address di kode setiap upload baru
+   - Tidak ada penyimpanan permanen MAC address
+   - Contoh MAC address default: `{0xC0, 0xDC, 0xFB, 0x3F, 0x00, 0x00}`
+
+2. Keterbatasan Kontrol:
+   - Mode turbo hanya untuk maju-mundur
+   - Belok kiri-kanan menggunakan kecepatan tetap
+   - Tidak ada kontrol kecepatan variabel
+
+## Penggunaan
+------------
+
+1. Hubungkan power supply ke motor driver
+2. Nyalakan ESP32
+3. Tunggu LED Bluetooth berkedip
+4. Hubungkan gamepad ke ESP32
+5. Gunakan D-pad untuk kontrol:
+   - Atas: Maju (tekan cross untuk turbo)
+   - Bawah: Mundur (tekan cross untuk turbo)
+   - Kiri: Belok kiri
+   - Kanan: Belok kanan
+
+## Catatan
+--------
+
+Kode ini menggunakan library Bluepad32 versi 4.1.0 yang memiliki kompatibilitas dengan ESP32. Pastikan untuk memperbarui library jika terdapat versi baru untuk mendapatkan fitur terbaru dan perbaikan bug.
