@@ -18,7 +18,7 @@ Repository ini berisi kumpulan kode untuk robot sumo yang dikendalikan menggunak
 * ESP32 Board (disarankan versi DevKit)
 * Motor Driver BTS7960
 * Motor DC x2
-* Power Supply untuk motor
+* Baterai Lipo Battery 11.1v
 * Gamepad Bluetooth (dapat menggunakan DualShock 4)
 
 ## Persyaratan Software
@@ -26,17 +26,17 @@ Repository ini berisi kumpulan kode untuk robot sumo yang dikendalikan menggunak
 
 ### Library yang Diperlukan
 1. Bluepad32
-   - Dapat diunduh melalui Library Manager Arduino
-   - Pencarian: "Bluepad32"
+   - Dapat diunduh melalui Boards Manager Arduino
+   - Pencarian: "esp32_bluepad32"
    - Versi: 4.1.0 atau lebih baru
 
 ## Cara Setup
 -------------
 
-1. Install Library:
+1. Install Boards Manager:
    - Buka Arduino IDE
-   - Menu Sketch > Include Library > Manage Libraries
-   - Cari "Bluepad32" dan install
+   - Masuk ke menu BOARDS MANAGER
+   - Cari "esp32_bluepad32" dan install
 
 2. Koneksi Hardware:
    - Hubungkan pin-pin sesuai tabel di atas
