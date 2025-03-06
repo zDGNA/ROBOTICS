@@ -1,23 +1,27 @@
 #include <Bluepad32.h>
 
-const uint8_t targetMacAddress[] = {0xC8, 0xD9, 0xFB, 0x3F, 0x00, 0x00};
+const uint8_t targetMacAddress[] = {0x70, 0xD8, 0xFB, 0x3F, 0x00, 0x00};
 ControllerPtr myControllers[BP32_MAX_GAMEPADS];
 ControllerPtr connectedController = nullptr;
+
+// Variabel untuk pola gerakan otomatis
+bool isPatternRunning = false;
+uint8_t currentStep = 0;
 
 // Definisi pin motor driver BTS7960
 #define LEFT_MOTOR_RIS 13   // Right Input Signal Motor Kiri
 #define LEFT_MOTOR_LIS 12   // Left Input Signal Motor Kiri
 #define LEFT_MOTOR_REN 14   // Enable Right Motor Kiri
 #define LEFT_MOTOR_LEN 27   // Enable Left Motor Kiri
-#define LEFT_MOTOR_RPWM 15  // PWM Right Motor Kiri
-#define LEFT_MOTOR_LPWM 16  // PWM Left Motor Kiri
+#define LEFT_MOTOR_RPWM 26  // PWM Right Motor Kiri
+#define LEFT_MOTOR_LPWM 25  // PWM Left Motor Kiri
 
-#define RIGHT_MOTOR_RIS 17  // Right Input Signal Motor Kanan
-#define RIGHT_MOTOR_LIS 18  // Left Input Signal Motor Kanan
-#define RIGHT_MOTOR_REN 19  // Enable Right Motor Kanan
-#define RIGHT_MOTOR_LEN 21  // Enable Left Motor Kanan
-#define RIGHT_MOTOR_RPWM 22 // PWM Right Motor Kanan
-#define RIGHT_MOTOR_LPWM 23 // PWM Left Motor Kanan
+#define RIGHT_MOTOR_RIS 15  // Right Input Signal Motor Kanan
+#define RIGHT_MOTOR_LIS 2  // Left Input Signal Motor Kanan
+#define RIGHT_MOTOR_REN 4  // Enable Right Motor Kanan
+#define RIGHT_MOTOR_LEN 16  // Enable Left Motor Kanan
+#define RIGHT_MOTOR_RPWM 17 // PWM Right Motor Kanan
+#define RIGHT_MOTOR_LPWM 5 // PWM Left Motor Kanan
 
 // Fungsi untuk menghentikan semua motor
 void stopMotors() {
@@ -58,11 +62,11 @@ void turnLeft() {
     digitalWrite(LEFT_MOTOR_RIS, LOW);
     digitalWrite(LEFT_MOTOR_LIS, LOW);
     analogWrite(LEFT_MOTOR_RPWM, 0);
-    analogWrite(LEFT_MOTOR_LPWM, 200);
+    analogWrite(LEFT_MOTOR_LPWM, 128);
 
     digitalWrite(RIGHT_MOTOR_RIS, LOW);
     digitalWrite(RIGHT_MOTOR_LIS, LOW);
-    analogWrite(RIGHT_MOTOR_RPWM, 200);
+    analogWrite(RIGHT_MOTOR_RPWM, 128);
     analogWrite(RIGHT_MOTOR_LPWM, 0);
 }
 
@@ -70,13 +74,65 @@ void turnLeft() {
 void turnRight() {
     digitalWrite(LEFT_MOTOR_RIS, LOW);
     digitalWrite(LEFT_MOTOR_LIS, LOW);
-    analogWrite(LEFT_MOTOR_RPWM, 200);
+    analogWrite(LEFT_MOTOR_RPWM, 128);
     analogWrite(LEFT_MOTOR_LPWM, 0);
 
     digitalWrite(RIGHT_MOTOR_RIS, LOW);
     digitalWrite(RIGHT_MOTOR_LIS, LOW);
     analogWrite(RIGHT_MOTOR_RPWM, 0);
-    analogWrite(RIGHT_MOTOR_LPWM, 200);
+    analogWrite(RIGHT_MOTOR_LPWM, 128);
+}
+
+// Fungsi untuk menggerakkan motor dengan kecepatan 20%
+void moveForwardVerySlow() {
+    digitalWrite(LEFT_MOTOR_RIS, LOW);   
+    digitalWrite(LEFT_MOTOR_LIS, LOW);   
+    analogWrite(LEFT_MOTOR_RPWM, 51); 
+    analogWrite(LEFT_MOTOR_LPWM, 0);     
+
+    digitalWrite(RIGHT_MOTOR_RIS, LOW);  
+    digitalWrite(RIGHT_MOTOR_LIS, LOW);  
+    analogWrite(RIGHT_MOTOR_RPWM, 51);
+    analogWrite(RIGHT_MOTOR_LPWM, 0);    
+}
+
+// Fungsi untuk menggerakkan motor mundur dengan kecepatan 20%
+void moveBackwardVerySlow() {
+    digitalWrite(LEFT_MOTOR_RIS, LOW);   
+    digitalWrite(LEFT_MOTOR_LIS, LOW);   
+    analogWrite(LEFT_MOTOR_RPWM, 0);     
+    analogWrite(LEFT_MOTOR_LPWM, 51); 
+
+    digitalWrite(RIGHT_MOTOR_RIS, LOW);  
+    digitalWrite(RIGHT_MOTOR_LIS, LOW);  
+    analogWrite(RIGHT_MOTOR_RPWM, 0);    
+    analogWrite(RIGHT_MOTOR_LPWM, 51);
+}
+
+// Fungsi untuk menggerakkan motor belok kiri dengan kecepatan sangat lambat
+void turnLeftVerySlow() {
+    digitalWrite(LEFT_MOTOR_RIS, LOW);
+    digitalWrite(LEFT_MOTOR_LIS, LOW);
+    analogWrite(LEFT_MOTOR_RPWM, 0);
+    analogWrite(LEFT_MOTOR_LPWM, 51);
+
+    digitalWrite(RIGHT_MOTOR_RIS, LOW);
+    digitalWrite(RIGHT_MOTOR_LIS, LOW);
+    analogWrite(RIGHT_MOTOR_RPWM, 51);
+    analogWrite(RIGHT_MOTOR_LPWM, 0);
+}
+
+// Fungsi untuk menggerakkan motor belok kanan dengan kecepatan sangat lambat
+void turnRightVerySlow() {
+    digitalWrite(LEFT_MOTOR_RIS, LOW);
+    digitalWrite(LEFT_MOTOR_LIS, LOW);
+    analogWrite(LEFT_MOTOR_RPWM, 51);
+    analogWrite(LEFT_MOTOR_LPWM, 0);
+
+    digitalWrite(RIGHT_MOTOR_RIS, LOW);
+    digitalWrite(RIGHT_MOTOR_LIS, LOW);
+    analogWrite(RIGHT_MOTOR_RPWM, 0);
+    analogWrite(RIGHT_MOTOR_LPWM, 51);
 }
 
 // Fungsi untuk menampilkan debug
@@ -103,38 +159,115 @@ void dumpGamepad(ControllerPtr ctl) {
     );
 }
 
-// Fungsi untuk memproses input gamepad
+// Fungsi untuk menjalankan pola gerakan
+void runMovementPattern() {
+    if (!isPatternRunning) return;
+    
+    switch(currentStep) {
+        case 0: // Tahap pertama: belok kanan
+            turnRightVerySlow();
+            Serial.println("Tahap 1: Belok Kanan");
+            currentStep++;
+            break;
+            
+        case 1: // Tahap kedua: maju
+            moveForwardVerySlow();
+            Serial.println("Tahap 2: Maju");
+            currentStep++;
+            break;
+            
+        case 2: // Tahap ketiga: belok kiri
+            turnLeftVerySlow();
+            Serial.println("Tahap 3: Belok Kiri");
+            currentStep++;
+            break;
+            
+        case 3: // Tahap keempat: maju lebih cepat
+            moveForward(75);
+            Serial.println("Tahap 4: Maju dengan kecepatan 75%");
+            currentStep++;
+            break;
+            
+        case 4: // Tahap kelima: belok kiri
+            turnLeftVerySlow();
+            Serial.println("Tahap 5: Belok Kiri");
+            currentStep++;
+            break;
+            
+        case 5: // Tahap keenam: maju lebih cepat
+            moveForward(75);
+            Serial.println("Tahap 6: Maju dengan kecepatan 75%");
+            currentStep++;
+            break;
+            
+        case 6: // Selesai pola
+            stopMotors();
+            Serial.println("Pola gerakan selesai");
+            isPatternRunning = false;
+            currentStep = 0;
+            break;
+    }
+    
+    delay(2000); // Tunggu 2 detik antara tahapan
+}
+
+// Fungsi untuk memproses controller
 void processGamepad(ControllerPtr ctl) {
     uint8_t dpad = ctl->dpad();
     uint16_t buttons = ctl->buttons();
-    stopMotors();  // Berhenti dulu semua motor
+    stopMotors();  
     
     // === Kontrol Motor ===
     if (dpad == 0x01) {  // Atas
-        if (buttons & 0x0001) {  // Jika tombol cross ditekan
-            moveForward(255);  // Mode turbo maju (kecepatan maksimal)
+        if (buttons & 0x0004) {  // Jika tombol rectangle ditekan
+            moveForwardVerySlow();  // Mode sangat lambat maju (20%)
+            Serial.println("Mode Sangat Lambat Maju Aktif");
+        } else if (buttons & 0x0001) {  // Jika tombol cross ditekan
+            moveForward(255);  // Mode turbo maju (100%)
             Serial.println("Mode Turbo Maju Aktif");
         } else {
-            moveForward(200);  // Mode normal maju
+            moveForward(200);  // Mode normal maju (78%)
             Serial.println("Mode Normal Maju Aktif");
         }
     } else if (dpad == 0x02) {  // Bawah
-        if (buttons & 0x0001) {  // Jika tombol cross ditekan
-            moveBackward(255);  // Mode turbo mundur (kecepatan maksimal)
+        if (buttons & 0x0004) {  // Jika tombol rectangle ditekan
+            moveBackwardVerySlow();  // Mode sangat lambat mundur (20%)
+            Serial.println("Mode Sangat Lambat Mundur Aktif");
+        } else if (buttons & 0x0001) {  // Jika tombol cross ditekan
+            moveBackward(255);  // Mode turbo mundur (100%)
             Serial.println("Mode Turbo Mundur Aktif");
         } else {
-            moveBackward(200);  // Mode normal mundur
+            moveBackward(200);  // Mode normal mundur (78%)
             Serial.println("Mode Normal Mundur Aktif");
         }
     } else if (dpad == 0x08) {  // Kiri
-        turnLeft();  // Mode normal kiri
-        Serial.println("Mode Normal Kiri Aktif");
+        if (buttons & 0x0004) {  // Jika tombol rectangle ditekan
+            turnLeftVerySlow();  // Mode sangat lambat belok kiri (12.5%)
+            Serial.println("Mode Sangat Lambat Belok Kiri Aktif");
+        } else {
+            turnLeft();  // Mode normal belok kiri
+            Serial.println("Mode Normal Belok Kiri Aktif");
+        }
     } else if (dpad == 0x04) {  // Kanan
-        turnRight();  // Mode normal kanan
-        Serial.println("Mode Normal Kanan Aktif");
+        if (buttons & 0x0004) {  // Jika tombol rectangle ditekan
+            turnRightVerySlow();  // Mode sangat lambat belok kanan (12.5%)
+            Serial.println("Mode Sangat Lambat Belok Kanan Aktif");
+        } else {
+            turnRight();  // Mode normal belok kanan
+            Serial.println("Mode Normal Belok Kanan Aktif");
+        }
     } else {
-        stopMotors();          // Jika tidak ada input, berhenti
-        Serial.println("Semua Motor Berhenti");
+        // Periksa kombinasi R1 + Circle untuk memulai pola
+        if ((buttons & 0x0020) && (buttons & 0x0002)) {
+            if (!isPatternRunning) {
+                isPatternRunning = true;
+                currentStep = 0;
+                Serial.println("Memulai pola gerakan otomatis...");
+            }
+        } else {
+            stopMotors();          
+            Serial.println("Semua Motor Berhenti");
+        }
     }
 }
 
@@ -149,16 +282,6 @@ void processControllers() {
             }
         }
     }
-}
-
-// Fungsi untuk menampilkan informasi controller
-void printControllerInfo(ControllerPtr ctl) {
-    ControllerProperties properties = ctl->getProperties();
-    Serial.printf("=== Controller Information ===\n");
-    const uint8_t* addr = BP32.localBdAddress();
-    Serial.printf("MAC Address: %02X:%02X:%02X:%02X:%02X:%02X\n",
-        addr[0], addr[1], addr[2], addr[3], addr[4], addr[5]);
-    Serial.printf("===========================\n");
 }
 
 // Fungsi untuk menangani koneksi controller
@@ -179,17 +302,16 @@ void onConnectedController(ControllerPtr ctl) {
             controllerMac[0], controllerMac[1], controllerMac[2],
             controllerMac[3], controllerMac[4], controllerMac[5]);
         Serial.printf("Expected MAC: %02X:%02X:%02X:%02X:%02X:%02X\n",
-            targetMacAddress[0], targetMacAddress[1], targetMacAddress[2],
-            targetMacAddress[3], targetMacAddress[4], targetMacAddress[5]);
-        ctl->disconnect();
-        return;
+    targetMacAddress[0], targetMacAddress[1], targetMacAddress[2],
+    targetMacAddress[3], targetMacAddress[4], targetMacAddress[5]);
+ctl->disconnect();
+return;
     }
-    
+
     bool foundEmptySlot = false;
     for (int i = 0; i < BP32_MAX_GAMEPADS; i++) {
         if (myControllers[i] == nullptr) {
             Serial.printf("CALLBACK: Controller is connected, index=%d\n", i);
-            printControllerInfo(ctl);
             myControllers[i] = ctl;
             connectedController = ctl;
             foundEmptySlot = true;
@@ -263,5 +385,10 @@ void setup() {
 void loop() {
     BP32.update();
     processControllers();
+    
+    if (isPatternRunning) {
+        runMovementPattern();
+    }
+    
     delay(50);
 }
