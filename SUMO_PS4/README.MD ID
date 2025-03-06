@@ -16,7 +16,7 @@ Repository ini berisi kumpulan kode untuk robot sumo yang dikendalikan menggunak
 ---------------------
 
 * ESP32 Board (disarankan versi DevKit)
-* Motor Driver BTS7960
+* Motor Driver BTS7960 atau relay
 * Motor DC x2
 * Baterai Lipo Battery 11.1v
 * Gamepad Bluetooth (dapat menggunakan DualShock 4)
